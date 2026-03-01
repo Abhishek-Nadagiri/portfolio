@@ -224,7 +224,7 @@ const PillNav = ({
             aria-label="Go to top"
           >
             <span className="pillnav-logo-text" ref={logoTextRef}>
-              AM
+              AJ
             </span>
             <div className="pillnav-logo-ring" />
             <div className="pillnav-logo-ring ring-2" />
@@ -271,7 +271,7 @@ const PillNav = ({
             aria-expanded={isMobileMenuOpen}
           >
             <span className="mobile-trigger-text">
-              {isMobileMenuOpen ? '✕' : 'AM'}
+              {isMobileMenuOpen ? '✕' : 'AJ'}
             </span>
             <div className="mobile-trigger-ring" />
 
@@ -317,7 +317,7 @@ const PillNav = ({
             className="mobile-menu-header"
             ref={(el) => { menuItemsRef.current[0] = el }}
           >
-            <div className="mobile-menu-logo">AM</div>
+            <div className="mobile-menu-logo">AJ</div>
             <p className="mobile-menu-subtitle">Navigation</p>
           </div>
 
