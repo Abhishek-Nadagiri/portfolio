@@ -99,7 +99,6 @@ function LoadingReveal({ onComplete }) {
         ctx.restore()
       })
 
-      // Draw connecting lines between nearby particles
       ctx.globalAlpha = 0.03
       ctx.strokeStyle = '#381932'
       ctx.lineWidth = 0.5
@@ -136,10 +135,9 @@ function LoadingReveal({ onComplete }) {
       const chars = 'AJAJajAJमेराहौसला'.split('')
       const shapes = ['glyph', 'shard', 'dot', 'ring', 'streak']
 
-      // Main burst
-      for (let i = 0; i < 300; i++) {
-        const angle = (Math.PI * 2 * i) / 300 + (Math.random() - 0.5) * 0.8
-        const speed = 0.5 + Math.random() * 6
+      for (let i = 0; i < 200; i++) {
+        const angle = (Math.PI * 2 * i) / 200 + (Math.random() - 0.5) * 0.8
+        const speed = 0.8 + Math.random() * 8
         const shape = shapes[Math.floor(Math.random() * shapes.length)]
         const isGlyph = shape === 'glyph'
 
@@ -148,15 +146,15 @@ function LoadingReveal({ onComplete }) {
           y: cy + (Math.random() - 0.5) * 100,
           vx: Math.cos(angle) * speed * (0.3 + Math.random()),
           vy: Math.sin(angle) * speed * (0.3 + Math.random()) - 2,
-          gravity: 0.008 + Math.random() * 0.025,
-          friction: 0.99 + Math.random() * 0.008,
+          gravity: 0.012 + Math.random() * 0.035,
+          friction: 0.985 + Math.random() * 0.01,
           size: isGlyph ? 6 + Math.random() * 24 : 1 + Math.random() * 5,
           scale: 1,
-          shrink: 0.996 + Math.random() * 0.003,
-          life: 0.5 + Math.random() * 0.5,
-          decay: 0.002 + Math.random() * 0.005,
+          shrink: 0.992 + Math.random() * 0.005,
+          life: 0.4 + Math.random() * 0.4,
+          decay: 0.006 + Math.random() * 0.01,
           rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.12,
+          rotSpeed: (Math.random() - 0.5) * 0.15,
           opacity: 0.15 + Math.random() * 0.6,
           color: `rgba(56, 25, 50, ${0.15 + Math.random() * 0.5})`,
           glow: 5 + Math.random() * 20,
@@ -166,25 +164,24 @@ function LoadingReveal({ onComplete }) {
         })
       }
 
-      // Secondary delayed wave
       setTimeout(() => {
-        for (let i = 0; i < 80; i++) {
-          const angle = (Math.PI * 2 * i) / 80 + Math.random()
-          const speed = 1 + Math.random() * 3
+        for (let i = 0; i < 50; i++) {
+          const angle = (Math.PI * 2 * i) / 50 + Math.random()
+          const speed = 1.5 + Math.random() * 4
           particlesRef.current.push({
             x: cx + (Math.random() - 0.5) * 60,
             y: cy + (Math.random() - 0.5) * 40,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed - 1.5,
-            gravity: 0.01 + Math.random() * 0.02,
-            friction: 0.992,
+            gravity: 0.015 + Math.random() * 0.03,
+            friction: 0.988,
             size: 2 + Math.random() * 8,
             scale: 1,
-            shrink: 0.998,
-            life: 0.6 + Math.random() * 0.4,
-            decay: 0.003 + Math.random() * 0.004,
+            shrink: 0.994,
+            life: 0.4 + Math.random() * 0.3,
+            decay: 0.008 + Math.random() * 0.008,
             rotation: Math.random() * Math.PI * 2,
-            rotSpeed: (Math.random() - 0.5) * 0.06,
+            rotSpeed: (Math.random() - 0.5) * 0.08,
             opacity: 0.1 + Math.random() * 0.3,
             color: `rgba(56, 25, 50, ${0.1 + Math.random() * 0.3})`,
             glow: 10 + Math.random() * 25,
@@ -193,7 +190,7 @@ function LoadingReveal({ onComplete }) {
             weight: '300',
           })
         }
-      }, 200)
+      }, 80)
     }
   }, [phase])
 
@@ -209,32 +206,33 @@ function LoadingReveal({ onComplete }) {
     return () => window.removeEventListener('mousemove', handleMove)
   }, [])
 
-  // Phase timeline
+  // Phase timeline — total under 3 seconds
+  // 100ms init + 1200ms loading + 700ms reveal + 800ms exit = 2800ms
   useEffect(() => {
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const initDelay = setTimeout(() => setPhase('loading'), 200)
-    const timeline = { loading: 3000, reveal: 1600, exit: 1200 }
+    const initDelay = setTimeout(() => setPhase('loading'), 100)
+    const timeline = { loading: 1200, reveal: 700, exit: 800 }
 
     startTimeRef.current = Date.now()
 
     const animateProgress = () => {
       const elapsed = Date.now() - startTimeRef.current
-      const p = Math.min(elapsed / (timeline.loading + 200), 1)
+      const p = Math.min(elapsed / (timeline.loading + 100), 1)
       setProgress(p)
       if (p < 1) rafRef.current = requestAnimationFrame(animateProgress)
     }
 
     rafRef.current = requestAnimationFrame(animateProgress)
 
-    const t1 = setTimeout(() => setPhase('reveal'), 200 + timeline.loading)
-    const t2 = setTimeout(() => setPhase('exit'), 200 + timeline.loading + timeline.reveal)
+    const t1 = setTimeout(() => setPhase('reveal'), 100 + timeline.loading)
+    const t2 = setTimeout(() => setPhase('exit'), 100 + timeline.loading + timeline.reveal)
     const t3 = setTimeout(() => {
       setPhase('done')
       document.body.style.overflow = originalOverflow || 'auto'
       onComplete?.()
-    }, 200 + timeline.loading + timeline.reveal + timeline.exit)
+    }, 100 + timeline.loading + timeline.reveal + timeline.exit)
 
     return () => {
       clearTimeout(initDelay)
@@ -277,15 +275,15 @@ function LoadingReveal({ onComplete }) {
         @keyframes letterRise {
           0% {
             opacity: 0;
-            transform: translateY(80px) scale(0.9);
-            filter: blur(12px);
+            transform: translateY(60px) scale(0.92);
+            filter: blur(10px);
           }
-          40% {
-            opacity: 0.6;
-            filter: blur(4px);
+          50% {
+            opacity: 0.7;
+            filter: blur(2px);
           }
-          70% {
-            transform: translateY(-8px) scale(1.01);
+          80% {
+            transform: translateY(-5px) scale(1.01);
             filter: blur(0);
           }
           100% {
@@ -298,15 +296,15 @@ function LoadingReveal({ onComplete }) {
         @keyframes letterRiseJ {
           0% {
             opacity: 0;
-            transform: translateY(80px) scale(0.9);
-            filter: blur(12px);
+            transform: translateY(60px) scale(0.92);
+            filter: blur(10px);
           }
-          40% {
-            opacity: 0.6;
-            filter: blur(4px);
+          50% {
+            opacity: 0.7;
+            filter: blur(2px);
           }
-          70% {
-            transform: translateY(-8px) scale(1.01);
+          80% {
+            transform: translateY(-5px) scale(1.01);
             filter: blur(0);
           }
           100% {
@@ -318,7 +316,7 @@ function LoadingReveal({ onComplete }) {
 
         @keyframes gentleFloat {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+          50% { transform: translateY(-4px); }
         }
 
         @keyframes implode {
@@ -326,49 +324,58 @@ function LoadingReveal({ onComplete }) {
             opacity: 1;
             transform: scale(1);
             filter: blur(0);
-            letter-spacing: -0.03em;
           }
-          20% {
-            transform: scale(1.06);
-            letter-spacing: 0.02em;
+          25% {
+            transform: scale(1.08);
           }
-          40% {
-            opacity: 0.7;
-            transform: scale(0.92);
-            letter-spacing: -0.06em;
-            filter: blur(1px);
-          }
-          60% {
-            opacity: 0.3;
-            transform: scale(0.6);
-            filter: blur(6px);
+          50% {
+            opacity: 0.5;
+            transform: scale(0.85);
+            filter: blur(2px);
           }
           100% {
             opacity: 0;
             transform: scale(0);
-            filter: blur(20px);
+            filter: blur(16px);
           }
         }
 
-        @keyframes exitFold {
+        @keyframes radialDissolve {
           0% {
+            clip-path: circle(150% at 50% 50%);
             opacity: 1;
-            transform: perspective(1200px) rotateX(0deg) translateY(0);
+            filter: blur(0px);
+          }
+          50% {
+            opacity: 0.8;
+            filter: blur(1px);
           }
           100% {
+            clip-path: circle(0% at 50% 50%);
             opacity: 0;
-            transform: perspective(800px) rotateX(-90deg) translateY(-60px);
+            filter: blur(6px);
           }
         }
 
-        @keyframes exitFoldBottom {
+        @keyframes curtainLeft {
           0% {
+            transform: translateX(0) scaleX(1);
             opacity: 1;
-            transform: perspective(1200px) rotateX(0deg) translateY(0);
           }
           100% {
+            transform: translateX(-105%) scaleX(0.8);
             opacity: 0;
-            transform: perspective(800px) rotateX(90deg) translateY(60px);
+          }
+        }
+
+        @keyframes curtainRight {
+          0% {
+            transform: translateX(0) scaleX(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(105%) scaleX(0.8);
+            opacity: 0;
           }
         }
 
@@ -381,30 +388,28 @@ function LoadingReveal({ onComplete }) {
 
         @keyframes lineExpand {
           0% { width: 0; opacity: 0; }
-          30% { opacity: 1; }
+          40% { opacity: 1; }
           100% { width: 100%; opacity: 1; }
         }
 
         @keyframes fadeSlideUp {
-          0% { opacity: 0; transform: translateY(15px); filter: blur(3px); }
+          0% { opacity: 0; transform: translateY(12px); filter: blur(2px); }
           100% { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
 
         @keyframes cornerDraw {
           0% { stroke-dashoffset: 100; opacity: 0; }
-          30% { opacity: 1; }
+          40% { opacity: 1; }
           100% { stroke-dashoffset: 0; opacity: 0.15; }
         }
 
-        @keyframes hindiFade {
+        @keyframes hindiInitial {
           0% {
             opacity: 0;
-            transform: translateY(8px);
             filter: blur(6px);
           }
           100% {
             opacity: 0.4;
-            transform: translateY(0);
             filter: blur(0);
           }
         }
@@ -418,9 +423,21 @@ function LoadingReveal({ onComplete }) {
           0%, 100% { opacity: 0.15; }
           50% { opacity: 0.3; }
         }
+
+        @keyframes exitVignette {
+          0% {
+            box-shadow: inset 0 0 0px 0px rgba(56,25,50,0);
+          }
+          40% {
+            box-shadow: inset 0 0 100px 50px rgba(56,25,50,0.06);
+          }
+          100% {
+            box-shadow: inset 0 0 0px 0px rgba(56,25,50,0);
+          }
+        }
       `}</style>
 
-      {/* Particle canvas — always on top */}
+      {/* Particle canvas */}
       <canvas
         ref={canvasRef}
         style={{
@@ -446,37 +463,50 @@ function LoadingReveal({ onComplete }) {
           pointerEvents: isExiting ? 'none' : 'auto',
         }}
       >
-        {/* Background panels */}
+        {/* Background panels — curtain split exit */}
         <div
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '100%',
-            height: '50.5%',
+            width: '50.5%',
+            height: '100%',
             background: '#FFF3E6',
             zIndex: 1,
-            transformOrigin: 'top center',
+            transformOrigin: 'left center',
             animation: isExiting
-              ? 'exitFold 1.2s cubic-bezier(0.7, 0, 0.2, 1) forwards'
+              ? 'curtainLeft 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards'
               : 'none',
           }}
         />
         <div
           style={{
             position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '100%',
-            height: '50.5%',
+            top: 0,
+            right: 0,
+            width: '50.5%',
+            height: '100%',
             background: '#FFF3E6',
             zIndex: 1,
-            transformOrigin: 'bottom center',
+            transformOrigin: 'right center',
             animation: isExiting
-              ? 'exitFoldBottom 1.2s cubic-bezier(0.7, 0, 0.2, 1) 0.08s forwards'
+              ? 'curtainRight 0.8s cubic-bezier(0.7, 0, 0.2, 1) 0.04s forwards'
               : 'none',
           }}
         />
+
+        {/* Exit vignette flash */}
+        {isExiting && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 2,
+              pointerEvents: 'none',
+              animation: 'exitVignette 0.8s ease forwards',
+            }}
+          />
+        )}
 
         {/* Film grain */}
         <div
@@ -503,7 +533,7 @@ function LoadingReveal({ onComplete }) {
               height: 1,
               background: 'linear-gradient(90deg, transparent 0%, rgba(56,25,50,0.06) 20%, rgba(56,25,50,0.1) 50%, rgba(56,25,50,0.06) 80%, transparent 100%)',
               zIndex: 4,
-              animation: 'scanLine 3s ease-in-out infinite',
+              animation: 'scanLine 1.2s ease-in-out infinite',
             }}
           />
         )}
@@ -522,9 +552,42 @@ function LoadingReveal({ onComplete }) {
             transform: isLoading
               ? `translate(${parallaxX}px, ${parallaxY}px)`
               : 'none',
-            transition: 'transform 1s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            transition: 'transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            animation: isExiting
+              ? 'radialDissolve 0.7s cubic-bezier(0.6, 0, 0.2, 1) forwards'
+              : 'none',
           }}
         >
+          {/* Hindi tagline — visible from the start */}
+          <div
+            style={{
+              marginBottom: 'clamp(18px, 3vw, 32px)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              opacity: isRevealing && !isExiting ? 0 : undefined,
+              transition: isRevealing ? 'opacity 0.2s ease' : 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"Cormorant", Georgia, serif',
+                fontWeight: 400,
+                fontSize: 'clamp(0.7rem, 1.4vw, 0.95rem)',
+                color: '#381932',
+                letterSpacing: '0.08em',
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                opacity: phase === 'initial' ? 0 : undefined,
+                animation: phase !== 'initial'
+                  ? 'hindiInitial 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                  : 'none',
+              }}
+            >
+              मेरा हौसला मेरी जीवन रेखा से गहरा है
+            </span>
+          </div>
+
           {/* Main letter group */}
           <div
             style={{
@@ -534,7 +597,7 @@ function LoadingReveal({ onComplete }) {
               position: 'relative',
               perspective: '1000px',
               animation: isLoading
-                ? 'gentleFloat 5s ease-in-out infinite 1.5s'
+                ? 'gentleFloat 2.5s ease-in-out infinite 0.8s'
                 : 'none',
             }}
           >
@@ -551,9 +614,9 @@ function LoadingReveal({ onComplete }) {
                 transformOrigin: 'center center',
                 opacity: phase === 'initial' ? 0 : undefined,
                 animation: isLoading
-                  ? 'letterRise 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-                  : isRevealing
-                    ? 'implode 1s cubic-bezier(0.4, 0, 0, 1) forwards'
+                  ? 'letterRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                  : isRevealing && !isExiting
+                    ? 'implode 0.5s cubic-bezier(0.4, 0, 0, 1) forwards'
                     : 'none',
               }}
             >
@@ -574,9 +637,9 @@ function LoadingReveal({ onComplete }) {
                 marginLeft: 'clamp(-8px, -1vw, -3px)',
                 opacity: phase === 'initial' ? 0 : undefined,
                 animation: isLoading
-                  ? 'letterRiseJ 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both'
-                  : isRevealing
-                    ? 'implode 1s cubic-bezier(0.4, 0, 0, 1) 0.08s forwards'
+                  ? 'letterRiseJ 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both'
+                  : isRevealing && !isExiting
+                    ? 'implode 0.5s cubic-bezier(0.4, 0, 0, 1) 0.05s forwards'
                     : 'none',
               }}
             >
@@ -591,8 +654,8 @@ function LoadingReveal({ onComplete }) {
               height: 0,
               borderTop: '1px solid rgba(56,25,50,0.12)',
               marginTop: 'clamp(16px, 3vw, 28px)',
-              opacity: isRevealing || isExiting || phase === 'initial' ? 0 : 1,
-              transition: 'opacity 0.3s ease',
+              opacity: isRevealing || phase === 'initial' ? 0 : 1,
+              transition: 'opacity 0.2s ease',
               overflow: 'hidden',
             }}
           >
@@ -601,13 +664,13 @@ function LoadingReveal({ onComplete }) {
                 width: '100%',
                 height: 1,
                 animation: isLoading
-                  ? 'lineExpand 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s both'
+                  ? 'lineExpand 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both'
                   : 'none',
               }}
             />
           </div>
 
-          {/* Hindi tagline */}
+          {/* Progress bar */}
           <div
             style={{
               marginTop: 'clamp(18px, 3vw, 32px)',
@@ -616,27 +679,9 @@ function LoadingReveal({ onComplete }) {
               alignItems: 'center',
               gap: 14,
               opacity: isLoading ? 1 : 0,
-              transition: 'opacity 0.3s ease',
+              transition: 'opacity 0.2s ease',
             }}
           >
-            <span
-              style={{
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontWeight: 400,
-                fontSize: 'clamp(0.7rem, 1.4vw, 0.95rem)',
-                color: '#381932',
-                letterSpacing: '0.08em',
-                textAlign: 'center',
-                whiteSpace: 'nowrap',
-                animation: isLoading
-                  ? 'hindiFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.8s both'
-                  : 'none',
-              }}
-            >
-              मेरा हौसला मेरी जीवन रेखा से गहरा है
-            </span>
-
-            {/* Progress bar */}
             <div
               style={{
                 width: 'clamp(60px, 10vw, 120px)',
@@ -645,7 +690,7 @@ function LoadingReveal({ onComplete }) {
                 borderRadius: 1,
                 overflow: 'hidden',
                 animation: isLoading
-                  ? 'fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s both'
+                  ? 'fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both'
                   : 'none',
               }}
             >
@@ -655,9 +700,9 @@ function LoadingReveal({ onComplete }) {
                   width: `${eased * 100}%`,
                   background: '#381932',
                   borderRadius: 1,
-                  transition: 'width 0.15s ease-out',
+                  transition: 'width 0.1s ease-out',
                   animation: isLoading
-                    ? 'progressGlow 2.5s ease-in-out infinite 2.5s'
+                    ? 'progressGlow 1s ease-in-out infinite 0.8s'
                     : 'none',
                 }}
               />
@@ -670,19 +715,19 @@ function LoadingReveal({ onComplete }) {
           <>
             <svg width="24" height="24" style={{ position: 'absolute', top: 'clamp(20px, 4vw, 40px)', left: 'clamp(20px, 4vw, 40px)', zIndex: 5 }}>
               <path d="M 0 24 L 0 0 L 24 0" fill="none" stroke="#381932" strokeWidth="1" strokeDasharray="100"
-                style={{ animation: 'cornerDraw 1s ease 1s both, breathe 4s ease-in-out infinite 2s' }} />
+                style={{ animation: 'cornerDraw 0.5s ease 0.3s both, breathe 2s ease-in-out infinite 0.8s' }} />
             </svg>
             <svg width="24" height="24" style={{ position: 'absolute', top: 'clamp(20px, 4vw, 40px)', right: 'clamp(20px, 4vw, 40px)', zIndex: 5 }}>
               <path d="M 0 0 L 24 0 L 24 24" fill="none" stroke="#381932" strokeWidth="1" strokeDasharray="100"
-                style={{ animation: 'cornerDraw 1s ease 1.1s both, breathe 4s ease-in-out infinite 2.1s' }} />
+                style={{ animation: 'cornerDraw 0.5s ease 0.4s both, breathe 2s ease-in-out infinite 0.9s' }} />
             </svg>
             <svg width="24" height="24" style={{ position: 'absolute', bottom: 'clamp(20px, 4vw, 40px)', left: 'clamp(20px, 4vw, 40px)', zIndex: 5 }}>
               <path d="M 0 0 L 0 24 L 24 24" fill="none" stroke="#381932" strokeWidth="1" strokeDasharray="100"
-                style={{ animation: 'cornerDraw 1s ease 1.2s both, breathe 4s ease-in-out infinite 2.2s' }} />
+                style={{ animation: 'cornerDraw 0.5s ease 0.5s both, breathe 2s ease-in-out infinite 1s' }} />
             </svg>
             <svg width="24" height="24" style={{ position: 'absolute', bottom: 'clamp(20px, 4vw, 40px)', right: 'clamp(20px, 4vw, 40px)', zIndex: 5 }}>
               <path d="M 24 0 L 24 24 L 0 24" fill="none" stroke="#381932" strokeWidth="1" strokeDasharray="100"
-                style={{ animation: 'cornerDraw 1s ease 1.3s both, breathe 4s ease-in-out infinite 2.3s' }} />
+                style={{ animation: 'cornerDraw 0.5s ease 0.6s both, breathe 2s ease-in-out infinite 1.1s' }} />
             </svg>
           </>
         )}
@@ -695,7 +740,7 @@ function LoadingReveal({ onComplete }) {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 5,
-            animation: 'fadeSlideUp 0.6s ease 1.5s both',
+            animation: 'fadeSlideUp 0.4s ease 0.5s both',
           }}>
             <span style={{
               fontFamily: '"Cormorant", Georgia, serif',
