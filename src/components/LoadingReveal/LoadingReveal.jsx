@@ -1,40 +1,69 @@
 // src/components/LoadingReveal/LoadingReveal.jsx
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 function LoadingReveal({ onComplete }) {
   const [phase, setPhase] = useState('initial')
   const [progress, setProgress] = useState(0)
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 })
+  const [lettersHidden, setLettersHidden] = useState(false)
 
   const startTimeRef = useRef(null)
   const rafRef = useRef(null)
   const canvasRef = useRef(null)
   const particlesRef = useRef([])
+  const isMobileRef = useRef(false)
+
+  // Detect mobile once
+  useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768 ||
+      /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent)
+  }, [])
 
   // Particle system
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
+    const isMobile = isMobileRef.current
+    const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio, 2)
 
     const resize = () => {
-      canvas.width = window.innerWidth * 2
-      canvas.height = window.innerHeight * 2
-      ctx.scale(2, 2)
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.scale(dpr, dpr)
     }
     resize()
     window.addEventListener('resize', resize)
 
-    let particles = particlesRef.current
     let animId
+    let lastTime = performance.now()
+    const targetFPS = isMobile ? 30 : 60
+    const frameInterval = 1000 / targetFPS
 
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width / 2, canvas.height / 2)
-      particles = particles.filter(p => p.life > 0)
-      particlesRef.current = particles
+    const animate = (currentTime) => {
+      animId = requestAnimationFrame(animate)
 
-      particles.forEach(p => {
+      const delta = currentTime - lastTime
+      if (delta < frameInterval) return
+      lastTime = currentTime - (delta % frameInterval)
+
+      const particles = particlesRef.current
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr)
+
+      // Filter dead particles in place
+      let writeIdx = 0
+      for (let i = 0; i < particles.length; i++) {
+        if (particles[i].life > 0) {
+          particles[writeIdx] = particles[i]
+          writeIdx++
+        }
+      }
+      particles.length = writeIdx
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i]
         p.x += p.vx
         p.y += p.vy
         p.vy += p.gravity
@@ -44,52 +73,66 @@ function LoadingReveal({ onComplete }) {
         p.rotation += p.rotSpeed
         p.scale *= p.shrink
 
-        const alpha = Math.pow(Math.max(0, p.life), 2)
+        const alpha = p.life * p.life
+        if (alpha < 0.01) continue
+
         ctx.save()
         ctx.translate(p.x, p.y)
         ctx.rotate(p.rotation)
         ctx.globalAlpha = alpha * p.opacity
 
+        const scaledSize = p.size * p.scale
+
         if (p.shape === 'glyph') {
-          ctx.font = `${p.weight} ${p.size * p.scale}px "Cormorant", serif`
+          ctx.font = `${p.weight} ${scaledSize}px "Cormorant", serif`
           ctx.fillStyle = p.color
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          ctx.shadowBlur = p.glow * alpha
-          ctx.shadowColor = p.color
+          if (!isMobile) {
+            ctx.shadowBlur = p.glow * alpha
+            ctx.shadowColor = p.color
+          }
           ctx.fillText(p.char, 0, 0)
         } else if (p.shape === 'shard') {
           ctx.fillStyle = p.color
-          ctx.shadowBlur = p.glow * alpha
-          ctx.shadowColor = p.color
+          if (!isMobile) {
+            ctx.shadowBlur = p.glow * alpha
+            ctx.shadowColor = p.color
+          }
           ctx.beginPath()
-          ctx.moveTo(0, -p.size * p.scale)
-          ctx.lineTo(p.size * p.scale * 0.4, p.size * p.scale * 0.6)
-          ctx.lineTo(-p.size * p.scale * 0.3, p.size * p.scale * 0.4)
+          ctx.moveTo(0, -scaledSize)
+          ctx.lineTo(scaledSize * 0.4, scaledSize * 0.6)
+          ctx.lineTo(-scaledSize * 0.3, scaledSize * 0.4)
           ctx.closePath()
           ctx.fill()
         } else if (p.shape === 'dot') {
           ctx.fillStyle = p.color
-          ctx.shadowBlur = p.glow * alpha
-          ctx.shadowColor = p.color
+          if (!isMobile) {
+            ctx.shadowBlur = p.glow * alpha
+            ctx.shadowColor = p.color
+          }
           ctx.beginPath()
-          ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2)
+          ctx.arc(0, 0, scaledSize, 0, Math.PI * 2)
           ctx.fill()
         } else if (p.shape === 'ring') {
           ctx.strokeStyle = p.color
           ctx.lineWidth = 0.5 * p.scale
-          ctx.shadowBlur = p.glow * alpha
-          ctx.shadowColor = p.color
+          if (!isMobile) {
+            ctx.shadowBlur = p.glow * alpha
+            ctx.shadowColor = p.color
+          }
           ctx.beginPath()
-          ctx.arc(0, 0, p.size * p.scale, 0, Math.PI * 2)
+          ctx.arc(0, 0, scaledSize, 0, Math.PI * 2)
           ctx.stroke()
         } else if (p.shape === 'streak') {
           ctx.strokeStyle = p.color
-          ctx.lineWidth = p.size * p.scale * 0.15
+          ctx.lineWidth = scaledSize * 0.15
           ctx.lineCap = 'round'
-          ctx.shadowBlur = p.glow * alpha
-          ctx.shadowColor = p.color
-          const len = p.size * p.scale * 2
+          if (!isMobile) {
+            ctx.shadowBlur = p.glow * alpha
+            ctx.shadowColor = p.color
+          }
+          const len = scaledSize * 2
           ctx.beginPath()
           ctx.moveTo(-len / 2, 0)
           ctx.lineTo(len / 2, 0)
@@ -97,46 +140,59 @@ function LoadingReveal({ onComplete }) {
         }
 
         ctx.restore()
-      })
+      }
 
-      ctx.globalAlpha = 0.03
-      ctx.strokeStyle = '#381932'
-      ctx.lineWidth = 0.5
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < Math.min(particles.length, i + 10); j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 80) {
-            ctx.globalAlpha = 0.02 * (1 - dist / 80) * Math.min(particles[i].life, particles[j].life)
-            ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.stroke()
+      // Connection lines — skip on mobile entirely
+      if (!isMobile && particles.length > 1 && particles.length < 100) {
+        ctx.strokeStyle = '#381932'
+        ctx.lineWidth = 0.5
+        const maxCheck = Math.min(particles.length, 40)
+        for (let i = 0; i < maxCheck; i++) {
+          for (let j = i + 1; j < Math.min(maxCheck, i + 6); j++) {
+            const dx = particles[i].x - particles[j].x
+            const dy = particles[i].y - particles[j].y
+            const distSq = dx * dx + dy * dy
+            if (distSq < 6400) {
+              const dist = Math.sqrt(distSq)
+              ctx.globalAlpha = 0.02 * (1 - dist / 80) * Math.min(particles[i].life, particles[j].life)
+              ctx.beginPath()
+              ctx.moveTo(particles[i].x, particles[i].y)
+              ctx.lineTo(particles[j].x, particles[j].y)
+              ctx.stroke()
+            }
           }
         }
       }
 
-      animId = requestAnimationFrame(animate)
+      ctx.globalAlpha = 1
     }
 
-    animate()
+    animId = requestAnimationFrame(animate)
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener('resize', resize)
     }
   }, [])
 
-  // Spawn particles on reveal
+  // Spawn particles on reveal — mark letters as hidden permanently
   useEffect(() => {
     if (phase === 'reveal') {
+      // Permanently hide letters once they implode
+      const hideTimer = setTimeout(() => {
+        setLettersHidden(true)
+      }, 400) // slightly before implode finishes (500ms)
+
       const cx = window.innerWidth / 2
       const cy = window.innerHeight / 2
+      const isMobile = isMobileRef.current
       const chars = 'AJAJajAJमेराहौसला'.split('')
       const shapes = ['glyph', 'shard', 'dot', 'ring', 'streak']
 
-      for (let i = 0; i < 200; i++) {
-        const angle = (Math.PI * 2 * i) / 200 + (Math.random() - 0.5) * 0.8
+      const particleCount = isMobile ? 60 : 200
+      const secondaryCount = isMobile ? 15 : 50
+
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.8
         const speed = 0.8 + Math.random() * 8
         const shape = shapes[Math.floor(Math.random() * shapes.length)]
         const isGlyph = shape === 'glyph'
@@ -152,12 +208,12 @@ function LoadingReveal({ onComplete }) {
           scale: 1,
           shrink: 0.992 + Math.random() * 0.005,
           life: 0.4 + Math.random() * 0.4,
-          decay: 0.006 + Math.random() * 0.01,
+          decay: isMobile ? 0.012 + Math.random() * 0.015 : 0.006 + Math.random() * 0.01,
           rotation: Math.random() * Math.PI * 2,
           rotSpeed: (Math.random() - 0.5) * 0.15,
           opacity: 0.15 + Math.random() * 0.6,
           color: `rgba(56, 25, 50, ${0.15 + Math.random() * 0.5})`,
-          glow: 5 + Math.random() * 20,
+          glow: isMobile ? 0 : 5 + Math.random() * 20,
           shape,
           char: chars[Math.floor(Math.random() * chars.length)],
           weight: Math.random() > 0.5 ? '300' : '600',
@@ -165,8 +221,8 @@ function LoadingReveal({ onComplete }) {
       }
 
       setTimeout(() => {
-        for (let i = 0; i < 50; i++) {
-          const angle = (Math.PI * 2 * i) / 50 + Math.random()
+        for (let i = 0; i < secondaryCount; i++) {
+          const angle = (Math.PI * 2 * i) / secondaryCount + Math.random()
           const speed = 1.5 + Math.random() * 4
           particlesRef.current.push({
             x: cx + (Math.random() - 0.5) * 60,
@@ -179,23 +235,27 @@ function LoadingReveal({ onComplete }) {
             scale: 1,
             shrink: 0.994,
             life: 0.4 + Math.random() * 0.3,
-            decay: 0.008 + Math.random() * 0.008,
+            decay: isMobile ? 0.015 + Math.random() * 0.012 : 0.008 + Math.random() * 0.008,
             rotation: Math.random() * Math.PI * 2,
             rotSpeed: (Math.random() - 0.5) * 0.08,
             opacity: 0.1 + Math.random() * 0.3,
             color: `rgba(56, 25, 50, ${0.1 + Math.random() * 0.3})`,
-            glow: 10 + Math.random() * 25,
+            glow: isMobile ? 0 : 10 + Math.random() * 25,
             shape: Math.random() > 0.5 ? 'ring' : 'dot',
             char: '',
             weight: '300',
           })
         }
       }, 80)
+
+      return () => clearTimeout(hideTimer)
     }
   }, [phase])
 
-  // Mouse tracking
+  // Mouse tracking — skip on mobile
   useEffect(() => {
+    if (isMobileRef.current) return
+
     const handleMove = (e) => {
       setMousePos({
         x: e.clientX / window.innerWidth,
@@ -206,14 +266,20 @@ function LoadingReveal({ onComplete }) {
     return () => window.removeEventListener('mousemove', handleMove)
   }, [])
 
-  // Phase timeline — total under 3 seconds
-  // 100ms init + 1200ms loading + 700ms reveal + 800ms exit = 2800ms
+  // Phase timeline — faster on mobile
   useEffect(() => {
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    const initDelay = setTimeout(() => setPhase('loading'), 100)
-    const timeline = { loading: 1200, reveal: 700, exit: 800 }
+    const isMobile = isMobileRef.current
+
+    // Mobile: 80ms + 800ms + 500ms + 500ms = 1880ms
+    // Desktop: 100ms + 1200ms + 700ms + 800ms = 2800ms
+    const timeline = isMobile
+      ? { init: 80, loading: 800, reveal: 500, exit: 500 }
+      : { init: 100, loading: 1200, reveal: 700, exit: 800 }
+
+    const initDelay = setTimeout(() => setPhase('loading'), timeline.init)
 
     startTimeRef.current = Date.now()
 
@@ -226,13 +292,19 @@ function LoadingReveal({ onComplete }) {
 
     rafRef.current = requestAnimationFrame(animateProgress)
 
-    const t1 = setTimeout(() => setPhase('reveal'), 100 + timeline.loading)
-    const t2 = setTimeout(() => setPhase('exit'), 100 + timeline.loading + timeline.reveal)
+    const t1 = setTimeout(
+      () => setPhase('reveal'),
+      timeline.init + timeline.loading
+    )
+    const t2 = setTimeout(
+      () => setPhase('exit'),
+      timeline.init + timeline.loading + timeline.reveal
+    )
     const t3 = setTimeout(() => {
       setPhase('done')
       document.body.style.overflow = originalOverflow || 'auto'
       onComplete?.()
-    }, 100 + timeline.loading + timeline.reveal + timeline.exit)
+    }, timeline.init + timeline.loading + timeline.reveal + timeline.exit)
 
     return () => {
       clearTimeout(initDelay)
@@ -249,10 +321,15 @@ function LoadingReveal({ onComplete }) {
   const isRevealing = phase === 'reveal' || phase === 'exit'
   const isExiting = phase === 'exit'
   const isLoading = phase === 'loading'
+  const isMobile = isMobileRef.current
 
   const eased = 1 - Math.pow(1 - progress, 5)
-  const parallaxX = (mousePos.x - 0.5) * 12
-  const parallaxY = (mousePos.y - 0.5) * 8
+  const parallaxX = isMobile ? 0 : (mousePos.x - 0.5) * 12
+  const parallaxY = isMobile ? 0 : (mousePos.y - 0.5) * 8
+
+  const exitDuration = isMobile ? '0.5s' : '0.8s'
+  const implodeDuration = isMobile ? '0.35s' : '0.5s'
+  const dissolveDuration = isMobile ? '0.45s' : '0.7s'
 
   return (
     <>
@@ -314,6 +391,17 @@ function LoadingReveal({ onComplete }) {
           }
         }
 
+        @keyframes letterRiseMobile {
+          0% {
+            opacity: 0;
+            transform: translateY(40px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
         @keyframes gentleFloat {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-4px); }
@@ -340,20 +428,28 @@ function LoadingReveal({ onComplete }) {
           }
         }
 
+        @keyframes implodeMobile {
+          0% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          30% {
+            transform: scale(1.05);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0);
+          }
+        }
+
         @keyframes radialDissolve {
           0% {
             clip-path: circle(150% at 50% 50%);
             opacity: 1;
-            filter: blur(0px);
-          }
-          50% {
-            opacity: 0.8;
-            filter: blur(1px);
           }
           100% {
             clip-path: circle(0% at 50% 50%);
             opacity: 0;
-            filter: blur(6px);
           }
         }
 
@@ -393,8 +489,8 @@ function LoadingReveal({ onComplete }) {
         }
 
         @keyframes fadeSlideUp {
-          0% { opacity: 0; transform: translateY(12px); filter: blur(2px); }
-          100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+          0% { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes cornerDraw {
@@ -412,6 +508,11 @@ function LoadingReveal({ onComplete }) {
             opacity: 0.4;
             filter: blur(0);
           }
+        }
+
+        @keyframes hindiInitialMobile {
+          0% { opacity: 0; }
+          100% { opacity: 0.4; }
         }
 
         @keyframes progressGlow {
@@ -474,8 +575,9 @@ function LoadingReveal({ onComplete }) {
             background: '#FFF3E6',
             zIndex: 1,
             transformOrigin: 'left center',
+            willChange: isExiting ? 'transform, opacity' : 'auto',
             animation: isExiting
-              ? 'curtainLeft 0.8s cubic-bezier(0.7, 0, 0.2, 1) forwards'
+              ? `curtainLeft ${exitDuration} cubic-bezier(0.7, 0, 0.2, 1) forwards`
               : 'none',
           }}
         />
@@ -489,42 +591,45 @@ function LoadingReveal({ onComplete }) {
             background: '#FFF3E6',
             zIndex: 1,
             transformOrigin: 'right center',
+            willChange: isExiting ? 'transform, opacity' : 'auto',
             animation: isExiting
-              ? 'curtainRight 0.8s cubic-bezier(0.7, 0, 0.2, 1) 0.04s forwards'
+              ? `curtainRight ${exitDuration} cubic-bezier(0.7, 0, 0.2, 1) 0.04s forwards`
               : 'none',
           }}
         />
 
-        {/* Exit vignette flash */}
-        {isExiting && (
+        {/* Exit vignette flash — skip on mobile */}
+        {isExiting && !isMobile && (
           <div
             style={{
               position: 'absolute',
               inset: 0,
               zIndex: 2,
               pointerEvents: 'none',
-              animation: 'exitVignette 0.8s ease forwards',
+              animation: `exitVignette ${exitDuration} ease forwards`,
             }}
           />
         )}
 
-        {/* Film grain */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: '-50%',
-            zIndex: 3,
-            opacity: 0.018,
-            pointerEvents: 'none',
-            mixBlendMode: 'multiply',
-            animation: 'grainShift 0.5s steps(1) infinite',
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-            backgroundSize: '200px 200px',
-          }}
-        />
+        {/* Film grain — skip on mobile */}
+        {!isMobile && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: '-50%',
+              zIndex: 3,
+              opacity: 0.018,
+              pointerEvents: 'none',
+              mixBlendMode: 'multiply',
+              animation: 'grainShift 0.5s steps(1) infinite',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+              backgroundSize: '200px 200px',
+            }}
+          />
+        )}
 
-        {/* Scan line */}
-        {isLoading && (
+        {/* Scan line — skip on mobile */}
+        {isLoading && !isMobile && (
           <div
             style={{
               position: 'absolute',
@@ -533,7 +638,7 @@ function LoadingReveal({ onComplete }) {
               height: 1,
               background: 'linear-gradient(90deg, transparent 0%, rgba(56,25,50,0.06) 20%, rgba(56,25,50,0.1) 50%, rgba(56,25,50,0.06) 80%, transparent 100%)',
               zIndex: 4,
-              animation: 'scanLine 1.2s ease-in-out infinite',
+              animation: `scanLine ${isMobile ? '0.8s' : '1.2s'} ease-in-out infinite`,
             }}
           />
         )}
@@ -549,24 +654,26 @@ function LoadingReveal({ onComplete }) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            transform: isLoading
+            transform: isLoading && !isMobile
               ? `translate(${parallaxX}px, ${parallaxY}px)`
               : 'none',
-            transition: 'transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)',
+            transition: isLoading ? 'transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none',
+            willChange: isExiting ? 'clip-path, opacity' : 'auto',
             animation: isExiting
-              ? 'radialDissolve 0.7s cubic-bezier(0.6, 0, 0.2, 1) forwards'
+              ? `radialDissolve ${dissolveDuration} cubic-bezier(0.6, 0, 0.2, 1) forwards`
               : 'none',
           }}
         >
-          {/* Hindi tagline — visible from the start */}
+          {/* Hindi tagline */}
           <div
             style={{
               marginBottom: 'clamp(18px, 3vw, 32px)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              opacity: isRevealing && !isExiting ? 0 : undefined,
-              transition: isRevealing ? 'opacity 0.2s ease' : 'none',
+              opacity: isRevealing ? 0 : undefined,
+              transition: isRevealing ? 'opacity 0.15s ease' : 'none',
+              visibility: lettersHidden ? 'hidden' : 'visible',
             }}
           >
             <span
@@ -580,7 +687,7 @@ function LoadingReveal({ onComplete }) {
                 whiteSpace: 'nowrap',
                 opacity: phase === 'initial' ? 0 : undefined,
                 animation: phase !== 'initial'
-                  ? 'hindiInitial 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                  ? `${isMobile ? 'hindiInitialMobile' : 'hindiInitial'} ${isMobile ? '0.5s' : '0.8s'} cubic-bezier(0.16, 1, 0.3, 1) forwards`
                   : 'none',
               }}
             >
@@ -588,64 +695,68 @@ function LoadingReveal({ onComplete }) {
             </span>
           </div>
 
-          {/* Main letter group */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'center',
-              position: 'relative',
-              perspective: '1000px',
-              animation: isLoading
-                ? 'gentleFloat 2.5s ease-in-out infinite 0.8s'
-                : 'none',
-            }}
-          >
-            {/* A */}
-            <span
+          {/* Main letter group — hidden permanently after implode */}
+          {!lettersHidden && (
+            <div
               style={{
-                fontSize: 'clamp(7rem, 22vw, 18rem)',
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontWeight: 300,
-                lineHeight: 0.8,
-                display: 'inline-block',
-                color: '#381932',
-                letterSpacing: '-0.03em',
-                transformOrigin: 'center center',
-                opacity: phase === 'initial' ? 0 : undefined,
-                animation: isLoading
-                  ? 'letterRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-                  : isRevealing && !isExiting
-                    ? 'implode 0.5s cubic-bezier(0.4, 0, 0, 1) forwards'
-                    : 'none',
+                display: 'flex',
+                alignItems: 'baseline',
+                justifyContent: 'center',
+                position: 'relative',
+                perspective: isMobile ? 'none' : '1000px',
+                animation: isLoading && !isMobile
+                  ? 'gentleFloat 2.5s ease-in-out infinite 0.8s'
+                  : 'none',
               }}
             >
-              A
-            </span>
+              {/* A */}
+              <span
+                style={{
+                  fontSize: 'clamp(7rem, 22vw, 18rem)',
+                  fontFamily: '"Cormorant", Georgia, serif',
+                  fontWeight: 300,
+                  lineHeight: 0.8,
+                  display: 'inline-block',
+                  color: '#381932',
+                  letterSpacing: '-0.03em',
+                  transformOrigin: 'center center',
+                  willChange: isRevealing ? 'transform, opacity, filter' : 'auto',
+                  opacity: phase === 'initial' ? 0 : undefined,
+                  animation: isLoading
+                    ? `${isMobile ? 'letterRiseMobile' : 'letterRise'} ${isMobile ? '0.45s' : '0.7s'} cubic-bezier(0.16, 1, 0.3, 1) forwards`
+                    : isRevealing && !isExiting
+                      ? `${isMobile ? 'implodeMobile' : 'implode'} ${implodeDuration} cubic-bezier(0.4, 0, 0, 1) forwards`
+                      : 'none',
+                }}
+              >
+                A
+              </span>
 
-            {/* J */}
-            <span
-              style={{
-                fontSize: 'clamp(7rem, 22vw, 18rem)',
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontWeight: 300,
-                lineHeight: 0.8,
-                display: 'inline-block',
-                color: '#381932',
-                letterSpacing: '-0.03em',
-                transformOrigin: 'center center',
-                marginLeft: 'clamp(-8px, -1vw, -3px)',
-                opacity: phase === 'initial' ? 0 : undefined,
-                animation: isLoading
-                  ? 'letterRiseJ 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both'
-                  : isRevealing && !isExiting
-                    ? 'implode 0.5s cubic-bezier(0.4, 0, 0, 1) 0.05s forwards'
-                    : 'none',
-              }}
-            >
-              J
-            </span>
-          </div>
+              {/* J */}
+              <span
+                style={{
+                  fontSize: 'clamp(7rem, 22vw, 18rem)',
+                  fontFamily: '"Cormorant", Georgia, serif',
+                  fontWeight: 300,
+                  lineHeight: 0.8,
+                  display: 'inline-block',
+                  color: '#381932',
+                  letterSpacing: '-0.03em',
+                  transformOrigin: 'center center',
+                  marginLeft: 'clamp(-8px, -1vw, -3px)',
+                  willChange: isRevealing ? 'transform, opacity, filter' : 'auto',
+                  opacity: phase === 'initial' ? 0 : undefined,
+                  animation: isLoading
+                    ? `${isMobile ? 'letterRiseMobile' : 'letterRiseJ'} ${isMobile ? '0.45s' : '0.7s'} cubic-bezier(0.16, 1, 0.3, 1) 0.1s both`
+                    : isRevealing && !isExiting
+                      ? `${isMobile ? 'implodeMobile' : 'implode'} ${implodeDuration} cubic-bezier(0.4, 0, 0, 1) 0.05s forwards`
+                      : 'none',
+                }}
+              >
+                J
+              </span>
+            </div>
+          )}
 
           {/* Horizontal rule */}
           <div
@@ -654,8 +765,8 @@ function LoadingReveal({ onComplete }) {
               height: 0,
               borderTop: '1px solid rgba(56,25,50,0.12)',
               marginTop: 'clamp(16px, 3vw, 28px)',
-              opacity: isRevealing || phase === 'initial' ? 0 : 1,
-              transition: 'opacity 0.2s ease',
+              opacity: isRevealing || phase === 'initial' || lettersHidden ? 0 : 1,
+              transition: 'opacity 0.15s ease',
               overflow: 'hidden',
             }}
           >
@@ -664,7 +775,7 @@ function LoadingReveal({ onComplete }) {
                 width: '100%',
                 height: 1,
                 animation: isLoading
-                  ? 'lineExpand 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both'
+                  ? `lineExpand ${isMobile ? '0.35s' : '0.5s'} cubic-bezier(0.16, 1, 0.3, 1) ${isMobile ? '0.4s' : '0.6s'} both`
                   : 'none',
               }}
             />
@@ -678,8 +789,8 @@ function LoadingReveal({ onComplete }) {
               flexDirection: 'column',
               alignItems: 'center',
               gap: 14,
-              opacity: isLoading ? 1 : 0,
-              transition: 'opacity 0.2s ease',
+              opacity: isLoading && !lettersHidden ? 1 : 0,
+              transition: 'opacity 0.15s ease',
             }}
           >
             <div
@@ -690,7 +801,7 @@ function LoadingReveal({ onComplete }) {
                 borderRadius: 1,
                 overflow: 'hidden',
                 animation: isLoading
-                  ? 'fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both'
+                  ? `fadeSlideUp ${isMobile ? '0.3s' : '0.4s'} cubic-bezier(0.16, 1, 0.3, 1) ${isMobile ? '0.35s' : '0.5s'} both`
                   : 'none',
               }}
             >
@@ -701,7 +812,7 @@ function LoadingReveal({ onComplete }) {
                   background: '#381932',
                   borderRadius: 1,
                   transition: 'width 0.1s ease-out',
-                  animation: isLoading
+                  animation: isLoading && !isMobile
                     ? 'progressGlow 1s ease-in-out infinite 0.8s'
                     : 'none',
                 }}
@@ -710,8 +821,8 @@ function LoadingReveal({ onComplete }) {
           </div>
         </div>
 
-        {/* Corner brackets */}
-        {isLoading && (
+        {/* Corner brackets — skip on mobile */}
+        {isLoading && !isMobile && (
           <>
             <svg width="24" height="24" style={{ position: 'absolute', top: 'clamp(20px, 4vw, 40px)', left: 'clamp(20px, 4vw, 40px)', zIndex: 5 }}>
               <path d="M 0 24 L 0 0 L 24 0" fill="none" stroke="#381932" strokeWidth="1" strokeDasharray="100"
@@ -740,7 +851,7 @@ function LoadingReveal({ onComplete }) {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 5,
-            animation: 'fadeSlideUp 0.4s ease 0.5s both',
+            animation: `fadeSlideUp ${isMobile ? '0.3s' : '0.4s'} ease ${isMobile ? '0.3s' : '0.5s'} both`,
           }}>
             <span style={{
               fontFamily: '"Cormorant", Georgia, serif',
