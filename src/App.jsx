@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { ShaderGradientCanvas, ShaderGradient } from 'shadergradient'
+import emailjs from '@emailjs/browser'
 import PillNav from './components/PillNav/PillNav'
 import LoadingReveal from './components/LoadingReveal/LoadingReveal'
 
@@ -256,6 +257,14 @@ const achievements = [
 ]
 
 // ═══════════════════════════════════════════════════════════
+// EMAILJS CREDENTIALS — Replace these three values
+// ═══════════════════════════════════════════════════════════
+
+const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+
+// ═══════════════════════════════════════════════════════════
 // ANIMATED NAME COMPONENT
 // ═══════════════════════════════════════════════════════════
 
@@ -336,13 +345,18 @@ function SmoothLink({ href, children, style: linkStyle, ...props }) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// MAIN APP — WITH LOADING REVEAL
+// MAIN APP
 // ═══════════════════════════════════════════════════════════
 
 function App() {
   const [activeSection, setActiveSection] = useState('hero')
   const [showLoading, setShowLoading] = useState(true)
   const [heroReady, setHeroReady] = useState(false)
+
+  // ── EmailJS init ──────────────────────────────────────────
+  useEffect(() => {
+    emailjs.init(EMAILJS_PUBLIC_KEY)
+  }, [])
 
   useEffect(() => {
     const handleAnchorClick = (e) => {
@@ -374,17 +388,12 @@ function App() {
 
   const handleLoadingComplete = () => {
     setShowLoading(false)
-    // Trigger hero animations after a short delay
     setTimeout(() => setHeroReady(true), 100)
   }
 
   return (
     <div style={{ background: '#0A0A0F', minHeight: '100vh', overflowX: 'hidden' }}>
-
-      {/* Loading Reveal Overlay */}
-      {showLoading && (
-        <LoadingReveal onComplete={handleLoadingComplete} />
-      )}
+      {showLoading && <LoadingReveal onComplete={handleLoadingComplete} />}
 
       <PillNav
         items={[
@@ -420,7 +429,7 @@ function App() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// HERO SECTION — Waits for loading reveal
+// HERO SECTION
 // ═══════════════════════════════════════════════════════════
 
 function HeroSection({ heroReady = false }) {
@@ -501,7 +510,6 @@ function HeroSection({ heroReady = false }) {
         height: '100%', textAlign: 'center',
         padding: isMobile ? '0 20px' : '0 24px',
       }}>
-
         {/* Status Badge */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
@@ -517,16 +525,13 @@ function HeroSection({ heroReady = false }) {
             width: 8, height: 8, background: '#4ADE80',
             borderRadius: '50%', animation: 'pulse 2s ease-in-out infinite',
           }} />
-          <span style={{
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: isMobile ? 10 : 12, letterSpacing: '0.05em',
-          }}>Available for Dev</span>
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? 10 : 12, letterSpacing: '0.05em' }}>
+            Available for Dev
+          </span>
         </div>
 
-        {/* Animated Name */}
         <AnimatedName name={personal.name} scrollY={scrollY} isLoaded={isLoaded} isMobile={isMobile} />
 
-        {/* Role */}
         <p style={{
           fontSize: isMobile ? 'clamp(0.9rem, 4vw, 1.1rem)' : 'clamp(1rem, 2.5vw, 1.5rem)',
           color: 'rgba(255,255,255,0.4)',
@@ -538,7 +543,6 @@ function HeroSection({ heroReady = false }) {
           transition: isLoaded ? 'opacity 0.1s ease-out' : 'all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s',
         }}>{personal.role}</p>
 
-        {/* CTAs */}
         <div style={{
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
@@ -579,19 +583,9 @@ function HeroSection({ heroReady = false }) {
           animation: 'bounce 2s ease-in-out infinite',
           transition: 'opacity 1s ease 1.2s',
         }}>
-          <span style={{
-            color: 'rgba(255,255,255,0.2)', fontSize: 10,
-            letterSpacing: '0.3em', textTransform: 'uppercase',
-          }}>Scroll</span>
-          <div style={{
-            width: 20, height: 32,
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: 10, display: 'flex', justifyContent: 'center', paddingTop: 6,
-          }}>
-            <div style={{
-              width: 3, height: 8, background: 'rgba(255,255,255,0.4)',
-              borderRadius: 2, animation: 'scrollDot 2s ease-in-out infinite',
-            }} />
+          <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Scroll</span>
+          <div style={{ width: 20, height: 32, border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, display: 'flex', justifyContent: 'center', paddingTop: 6 }}>
+            <div style={{ width: 3, height: 8, background: 'rgba(255,255,255,0.4)', borderRadius: 2, animation: 'scrollDot 2s ease-in-out infinite' }} />
           </div>
         </div>
       )}
@@ -628,20 +622,16 @@ function AnimatedCounter({ target }) {
   }, [numericValue])
 
   return (
-    <div ref={ref} style={{
-      fontSize: '1.5rem', fontWeight: 700, color: 'white',
-      fontFamily: 'Space Grotesk, sans-serif',
-    }}>{count}{target.replace(/[0-9]/g, '')}</div>
+    <div ref={ref} style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk, sans-serif' }}>
+      {count}{target.replace(/[0-9]/g, '')}
+    </div>
   )
 }
 
 function AboutSection() {
   const isMobile = useIsMobile()
   return (
-    <section id="about" style={{
-      minHeight: isMobile ? 'auto' : '100vh', display: 'flex', alignItems: 'center',
-      padding: isMobile ? '64px 20px' : '96px 24px', background: '#0A0A0F',
-    }}>
+    <section id="about" style={{ minHeight: isMobile ? 'auto' : '100vh', display: 'flex', alignItems: 'center', padding: isMobile ? '64px 20px' : '96px 24px', background: '#0A0A0F' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', width: '100%' }}>
         <ScrollReveal direction="down" distance={30} duration={900}>
           <SectionHeader eyebrow="About Me" title="Building the Future of the Web" />
@@ -731,7 +721,9 @@ function SkillsSection() {
             </ScrollReveal>
           ))}
         </div>
-        <ScrollReveal direction="up" delay={500} distance={15}><p style={{ textAlign: 'center', marginTop: isMobile ? 28 : 44, color: 'rgba(255,255,255,0.12)', fontSize: isMobile ? '0.65rem' : '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Always learning · Always evolving</p></ScrollReveal>
+        <ScrollReveal direction="up" delay={500} distance={15}>
+          <p style={{ textAlign: 'center', marginTop: isMobile ? 28 : 44, color: 'rgba(255,255,255,0.12)', fontSize: isMobile ? '0.65rem' : '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Always learning · Always evolving</p>
+        </ScrollReveal>
       </div>
     </section>
   )
@@ -837,7 +829,7 @@ function AchievementsSection() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CONTACT SECTION
+// CONTACT SECTION — EmailJS integrated
 // ═══════════════════════════════════════════════════════════
 
 function ContactSection() {
@@ -845,17 +837,61 @@ function ContactSection() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setIsSubmitting(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    setIsSubmitting(false); setIsSubmitted(true)
-    setFormData({ name: '', email: '', message: '' })
-    setTimeout(() => setIsSubmitted(false), 5000)
-  }
-  const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError('')
 
-  const inputStyle = { width: '100%', padding: isMobile ? '12px 16px' : '14px 20px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: 'white', fontSize: isMobile ? '0.85rem' : '0.95rem', outline: 'none', transition: 'border-color 0.3s', fontFamily: 'Inter, sans-serif' }
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          message: formData.message,
+          sent_date: new Date().toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZoneName: 'short',
+          }),
+          current_year: new Date().getFullYear(),
+        }
+      )
+      setIsSubmitted(true)
+      setFormData({ name: '', email: '', message: '' })
+      setTimeout(() => setIsSubmitted(false), 5000)
+    } catch (err) {
+      console.error('EmailJS error:', err)
+      setError(`Failed to send message. Please email me directly at ${personal.email}`)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    if (error) setError('')
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: isMobile ? '12px 16px' : '14px 20px',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    color: 'white',
+    fontSize: isMobile ? '0.85rem' : '0.95rem',
+    outline: 'none',
+    transition: 'border-color 0.3s, background 0.3s',
+    fontFamily: 'Inter, sans-serif',
+  }
 
   const socialLinks = [
     { name: 'GitHub', icon: <GitHubIcon size={16} />, url: personal.social.github },
@@ -864,55 +900,188 @@ function ContactSection() {
   ]
 
   return (
-    <section id="contact" style={{ minHeight: isMobile ? 'auto' : '100vh', display: 'flex', alignItems: 'center', padding: isMobile ? '64px 20px' : '96px 24px', background: '#0A0A0F' }}>
+    <section id="contact" style={{
+      minHeight: isMobile ? 'auto' : '100vh',
+      display: 'flex', alignItems: 'center',
+      padding: isMobile ? '64px 20px' : '96px 24px',
+      background: '#0A0A0F',
+    }}>
       <div style={{ maxWidth: 1000, margin: '0 auto', width: '100%' }}>
-        <ScrollReveal direction="down" distance={30}><SectionHeader eyebrow="Contact" title="Let's Build Something Together" /></ScrollReveal>
+        <ScrollReveal direction="down" distance={30}>
+          <SectionHeader eyebrow="Contact" title="Let's Build Something Together" />
+        </ScrollReveal>
+
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 32 : 48 }}>
+
+          {/* ── Left: Form ── */}
           <ScrollReveal direction={isMobile ? 'up' : 'left'} distance={isMobile ? 30 : 60} duration={1000}>
             <div>
               {isSubmitted ? (
-                <div style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)', borderRadius: 16, padding: isMobile ? 24 : 32, textAlign: 'center' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 12 }}>✅</div>
-                  <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 700 }}>Message Sent!</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: 8, fontSize: '0.85rem' }}>I'll get back to you soon.</p>
+                /* Success state */
+                <div style={{
+                  background: 'rgba(74,222,128,0.1)',
+                  border: '1px solid rgba(74,222,128,0.2)',
+                  borderRadius: 16,
+                  padding: isMobile ? 24 : 32,
+                  textAlign: 'center',
+                  animation: 'fadeIn 0.5s ease-in',
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: 16 }}>✅</div>
+                  <h3 style={{ color: 'white', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 700, marginBottom: 8 }}>
+                    Message Sent Successfully!
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: isMobile ? '0.85rem' : '0.9rem', lineHeight: 1.6 }}>
+                    Thanks for reaching out! I'll get back to you soon.
+                  </p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {[{ label: 'Name', name: 'name', type: 'text', placeholder: 'Enter your Name' }, { label: 'Email', name: 'email', type: 'email', placeholder: 'Enter your mail' }].map((field) => (
-                    <div key={field.name}>
-                      <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{field.label}</label>
-                      <input type={field.type} name={field.name} value={formData[field.name]} onChange={handleChange} required placeholder={field.placeholder} style={inputStyle} onFocus={(e) => e.target.style.borderColor = 'rgba(108,99,255,0.5)'} onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
-                    </div>
-                  ))}
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* Name */}
                   <div>
-                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Message</label>
-                    <textarea name="message" value={formData.message} onChange={handleChange} required rows={isMobile ? 4 : 5} placeholder="Tell me about your project..." style={{ ...inputStyle, resize: 'none' }} onFocus={(e) => e.target.style.borderColor = 'rgba(108,99,255,0.5)'} onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6, fontWeight: 600 }}>
+                      Your Name *
+                    </label>
+                    <input
+                      type="text" name="name" value={formData.name}
+                      onChange={handleChange} required placeholder="John Doe"
+                      style={inputStyle}
+                      onFocus={(e) => { e.target.style.borderColor = 'rgba(108,99,255,0.5)'; e.target.style.background = 'rgba(255,255,255,0.05)' }}
+                      onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.03)' }}
+                    />
                   </div>
-                  <button type="submit" disabled={isSubmitting} style={{ width: '100%', padding: isMobile ? 12 : 14, background: '#6C63FF', color: 'white', border: 'none', borderRadius: 12, fontWeight: 600, fontSize: isMobile ? '0.8rem' : '0.9rem', cursor: isSubmitting ? 'wait' : 'pointer', opacity: isSubmitting ? 0.7 : 1, transition: 'all 0.3s' }}>{isSubmitting ? '⏳ Sending...' : 'Send Message'}</button>
+
+                  {/* Email */}
+                  <div>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6, fontWeight: 600 }}>
+                      Email Address *
+                    </label>
+                    <input
+                      type="email" name="email" value={formData.email}
+                      onChange={handleChange} required placeholder="john@example.com"
+                      style={inputStyle}
+                      onFocus={(e) => { e.target.style.borderColor = 'rgba(108,99,255,0.5)'; e.target.style.background = 'rgba(255,255,255,0.05)' }}
+                      onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.03)' }}
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label style={{ display: 'block', color: 'rgba(255,255,255,0.4)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6, fontWeight: 600 }}>
+                      Your Message *
+                    </label>
+                    <textarea
+                      name="message" value={formData.message}
+                      onChange={handleChange} required
+                      rows={isMobile ? 5 : 6}
+                      placeholder="Tell me about your project, ideas, or just say hi..."
+                      style={{ ...inputStyle, resize: 'vertical', minHeight: '120px' }}
+                      onFocus={(e) => { e.target.style.borderColor = 'rgba(108,99,255,0.5)'; e.target.style.background = 'rgba(255,255,255,0.05)' }}
+                      onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.03)' }}
+                    />
+                  </div>
+
+                  {/* Error */}
+                  {error && (
+                    <div style={{
+                      padding: '12px 16px',
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      borderRadius: 10,
+                      color: '#ff6b6b',
+                      fontSize: isMobile ? '0.8rem' : '0.85rem',
+                      display: 'flex', alignItems: 'flex-start', gap: 10, lineHeight: 1.5,
+                    }}>
+                      <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⚠️</span>
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    style={{
+                      width: '100%',
+                      padding: isMobile ? '14px' : '16px',
+                      background: isSubmitting ? 'rgba(108,99,255,0.5)' : '#6C63FF',
+                      color: 'white', border: 'none', borderRadius: 12,
+                      fontWeight: 600, fontSize: isMobile ? '0.9rem' : '1rem',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: isSubmitting ? 'none' : '0 4px 15px rgba(108,99,255,0.3)',
+                      transform: isSubmitting ? 'scale(0.98)' : 'scale(1)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSubmitting) {
+                        e.target.style.transform = 'translateY(-2px)'
+                        e.target.style.boxShadow = '0 6px 20px rgba(108,99,255,0.4)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSubmitting) {
+                        e.target.style.transform = 'translateY(0)'
+                        e.target.style.boxShadow = '0 4px 15px rgba(108,99,255,0.3)'
+                      }
+                    }}
+                  >
+                    {isSubmitting ? (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                        <span style={{
+                          display: 'inline-block', width: 16, height: 16,
+                          border: '2px solid white', borderTopColor: 'transparent',
+                          borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                        }} />
+                        Sending...
+                      </span>
+                    ) : '📧 Send Message'}
+                  </button>
+
                 </form>
               )}
             </div>
           </ScrollReveal>
+
+          {/* ── Right: Info ── */}
           <ScrollReveal direction={isMobile ? 'up' : 'right'} distance={isMobile ? 30 : 60} duration={1000} delay={isMobile ? 100 : 300}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
               <InfoCard icon="📧" label="Email" value={personal.email} isMobile={isMobile} />
               <InfoCard icon="📍" label="Location" value={personal.location} isMobile={isMobile} />
+
               <div style={{ marginTop: 12 }}>
-                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Find me online</p>
+                <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+                  Find me online
+                </p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {socialLinks.map((social) => (
-                    <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer" style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,99,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(-2px)' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.transform = 'translateY(0)' }}>{social.icon}</a>
+                    <a
+                      key={social.name} href={social.url}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'all 0.3s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,99,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                      {social.icon}
+                    </a>
                   ))}
                 </div>
               </div>
-              <a href={personal.resumeUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: isMobile ? 12 : 14, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: isMobile ? '0.8rem' : '0.9rem', marginTop: 8 }}>📄 Download Resume</a>
+
+              <a href={personal.resumeUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: isMobile ? 12 : 14, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: isMobile ? '0.8rem' : '0.9rem', marginTop: 8 }}>
+                📄 Download Resume
+              </a>
             </div>
           </ScrollReveal>
+
         </div>
       </div>
     </section>
   )
 }
+
+// ═══════════════════════════════════════════════════════════
+// INFO CARD
+// ═══════════════════════════════════════════════════════════
 
 function InfoCard({ icon, label, value, isMobile }) {
   return (
@@ -946,7 +1115,11 @@ function Footer() {
           <span style={{ fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 700, color: 'white', fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '-0.02em' }}>{personal.name}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 16 }}>
             {footerSocials.map((social) => (
-              <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer" title={social.name} style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,99,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(108,99,255,0.15)' }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}>{social.icon}</a>
+              <a key={social.name} href={social.url} target="_blank" rel="noopener noreferrer" title={social.name}
+                style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(108,99,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(108,99,255,0.15)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+              >{social.icon}</a>
             ))}
           </div>
           <div style={{ width: isMobile ? '80%' : '40%', height: 1, background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.06), transparent)' }} />
@@ -1009,6 +1182,13 @@ globalStyle.textContent = `
     0%, 100% { opacity: 0.6; transform: scale(1); }
     50% { opacity: 1; transform: scale(1.4); }
   }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   html {
     scroll-behavior: auto !important;
@@ -1020,30 +1200,16 @@ globalStyle.textContent = `
     box-sizing: border-box;
   }
   body {
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
   }
-  input, textarea, button {
-    font-family: inherit;
-  }
-  a {
-    -webkit-tap-highlight-color: transparent;
-  }
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0A0A0F;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(108,99,255,0.3);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(108,99,255,0.5);
-  }
+  input, textarea, button { font-family: inherit; }
+  a { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0A0A0F; }
+  ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.5); }
 `
 document.head.appendChild(globalStyle)
 
