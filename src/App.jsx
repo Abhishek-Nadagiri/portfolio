@@ -5,6 +5,8 @@ import { ShaderGradientCanvas, ShaderGradient } from 'shadergradient'
 import emailjs from '@emailjs/browser'
 import PillNav from './components/PillNav/PillNav'
 import LoadingReveal from './components/LoadingReveal/LoadingReveal'
+import { projects } from './data/projects'
+import ProjectsSection from './components/sections/ProjectsSection' 
 
 // ═══════════════════════════════════════════════════════════
 // SCROLL ANIMATION SYSTEM
@@ -214,13 +216,6 @@ const personal = {
     { number: "4+", label: "Learning" },
   ],
 }
-
-const projects = [
-  { id: 1, title: "Inventa", description: "Real-time monitoring dashboard for distributed systems.", tech: ["React", "Tailwind CSS", "MySQL", "Vite"], liveUrl: "#", repoUrl: "#", metrics: "Document Protection", year: 2026, color: "#6C63FF" },
-  { id: 2, title: "3D E-Commerce Experience", description: "Shopping platform with interactive 3D product visualization.", tech: ["Next.js", "Three.js", "Stripe", "AWS"], liveUrl: "#", repoUrl: "#", metrics: "50K+ transactions", year: 2024, color: "#00D4FF" },
-  { id: 3, title: "AI Content Engine", description: "AI-powered content management with smart categorization.", tech: ["Python", "React", "OpenAI", "Redis"], liveUrl: "#", repoUrl: "#", metrics: "1M+ articles", year: 2023, color: "#FF6B6B" },
-  { id: 4, title: "Real-Time Fitness Tracker", description: "Cross-platform mobile app for workout tracking.", tech: ["React Native", "Firebase", "D3.js"], liveUrl: "#", repoUrl: "#", metrics: "25K+ downloads", year: 2023, color: "#4ADE80" },
-]
 
 const skillCategories = [
   {
@@ -724,43 +719,6 @@ function SkillsSection() {
         <ScrollReveal direction="up" delay={500} distance={15}>
           <p style={{ textAlign: 'center', marginTop: isMobile ? 28 : 44, color: 'rgba(255,255,255,0.12)', fontSize: isMobile ? '0.65rem' : '0.72rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Always learning · Always evolving</p>
         </ScrollReveal>
-      </div>
-    </section>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════
-// PROJECTS SECTION
-// ═══════════════════════════════════════════════════════════
-
-function ProjectsSection() {
-  const isMobile = useIsMobile()
-  return (
-    <section id="projects" style={{ minHeight: isMobile ? 'auto' : '100vh', padding: isMobile ? '64px 20px' : '96px 24px', background: '#0A0A0F' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <ScrollReveal direction="down" distance={30}><SectionHeader eyebrow="Portfolio" title="Selected Work" /></ScrollReveal>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? 16 : 24 }}>
-          {projects.map((p, i) => (
-            <ScrollReveal key={p.id} direction="up" delay={i * 100} distance={40} duration={900}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, overflow: 'hidden', transition: 'all 0.5s', cursor: 'pointer' }}>
-                <div style={{ height: isMobile ? 140 : 180, position: 'relative', background: `linear-gradient(135deg, ${p.color}15, ${p.color}05)` }}>
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: p.color, opacity: 0.15, filter: 'blur(25px)' }} />
-                  <span style={{ position: 'absolute', top: 12, right: 12, padding: '3px 10px', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)', borderRadius: 9999, fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>{p.year}</span>
-                  {p.metrics && <span style={{ position: 'absolute', bottom: 12, left: 12, padding: '3px 10px', background: `${p.color}20`, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9999, fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>{p.metrics}</span>}
-                </div>
-                <div style={{ padding: isMobile ? 16 : 24 }}>
-                  <h3 style={{ fontSize: isMobile ? '1.05rem' : '1.25rem', fontWeight: 700, color: 'white', marginBottom: 8, fontFamily: 'Space Grotesk' }}>{p.title}</h3>
-                  <p style={{ color: '#A0A0B8', fontSize: isMobile ? '0.8rem' : '0.875rem', lineHeight: 1.6, marginBottom: 12 }}>{p.description}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>{p.tech.map((t) => (<span key={t} style={{ fontSize: '0.65rem', padding: '3px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 9999, color: 'rgba(255,255,255,0.5)' }}>{t}</span>))}</div>
-                  <div style={{ display: 'flex', gap: 16 }}>
-                    <a href={p.liveUrl} style={{ color: '#6C63FF', fontSize: '0.8rem', textDecoration: 'none' }}>Live Demo →</a>
-                    <a href={p.repoUrl} style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', textDecoration: 'none' }}>Source Code →</a>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
       </div>
     </section>
   )

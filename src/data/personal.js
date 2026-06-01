@@ -1,10 +1,10 @@
 // src/data/personal.js
 
 export const personal = {
-  name: "Alex Morgan",
+  name: "Abhishek Nadagiri",
   role: "Full-Stack Developer & Creative Engineer",
-  email: "alex@example.com",
-  location: "San Francisco, CA",
+  email: "abhisheknadagiri300@gmail.com",
+  location: "Hyderabad, India",
   bio: `I'm a passionate developer with 5+ years of experience building 
         high-performance web applications. I specialize in React, WebGL, 
         and creating memorable digital experiences that push the boundaries 
