@@ -30,19 +30,19 @@ export default function Hero({ isLoaded }: HeroProps) {
     }
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.15 });
+      const tl = gsap.timeline();
 
-      // Name character reveal
+      // Name character reveal - instantaneous with smooth upward stagger
       const chars = nameRef.current?.querySelectorAll('.hero-char');
       if (chars && chars.length > 0) {
         tl.fromTo(
           chars,
-          { y: 40, opacity: 0 },
+          { y: 25, opacity: 0 },
           {
             y: 0,
             opacity: 1,
-            duration: 0.7,
-            stagger: 0.03,
+            duration: 0.45,
+            stagger: 0.015,
             ease: 'power3.out',
           }
         );
@@ -52,9 +52,9 @@ export default function Hero({ isLoaded }: HeroProps) {
       if (taglineRef.current) {
         tl.fromTo(
           taglineRef.current,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' },
-          '-=0.3'
+          { y: 15, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' },
+          '-=0.2'
         );
       }
 

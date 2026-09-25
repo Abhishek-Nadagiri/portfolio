@@ -143,5 +143,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
   <b>Built by Abhishek Nadagiri</b><br />
-  <i>Build it. Experiment with it. Create with it.</i>
+  <i>“I am no bird; and no net ensnares me: I am a free human being with an independent will.”</i>
 </div>

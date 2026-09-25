@@ -38,8 +38,8 @@ export default function Footer() {
     >
       <div className="footer-content max-w-4xl mx-auto text-center">
         {/* Closing statement */}
-        <p className="font-display text-lg sm:text-xl lg:text-2xl font-medium text-chrome-900 dark:text-chrome-100 leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-          Build it. Experiment with it. Create with it.
+        <p className="font-display text-base sm:text-lg lg:text-xl font-medium italic text-chrome-900 dark:text-chrome-100 leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
+          “I am no bird; and no net ensnares me: I am a free human being with an independent will.”
         </p>
 
         <p className="text-xs sm:text-sm text-chrome-500 dark:text-chrome-400 mb-8 font-body">
