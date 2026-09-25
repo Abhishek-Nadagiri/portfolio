@@ -57,7 +57,7 @@ export default function DockNav() {
       const itemCenter = itemRect.left + itemRect.width / 2 - dockRect.left;
       const distance = Math.abs(mouseX - itemCenter);
       const maxDistance = 120;
-      const maxScale = 0.45;
+      const maxScale = 0.42;
       const scale = 1 + maxScale * Math.max(0, 1 - distance / maxDistance);
       return scale;
     },
@@ -66,7 +66,7 @@ export default function DockNav() {
 
   return (
     <>
-      {/* ──────────────── Desktop Persistent Dock ──────────────── */}
+      {/* ──────────────── Desktop Persistent Glass Dock ──────────────── */}
       <nav
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden md:flex items-end gap-1"
         role="navigation"
@@ -75,10 +75,11 @@ export default function DockNav() {
         <div
           ref={dockRef}
           className="flex items-end gap-1.5 px-3 py-2 rounded-2xl
-            bg-white/85 dark:bg-surface-dark-3/85
-            backdrop-blur-2xl
-            border border-chrome-200/50 dark:border-chrome-700/40
-            shadow-xl shadow-black/10 dark:shadow-black/50"
+            bg-white/45 dark:bg-[#121217]/50
+            backdrop-blur-2xl backdrop-saturate-[190%]
+            border border-white/70 dark:border-white/12
+            shadow-[0_20px_45px_-12px_rgba(0,0,0,0.14),inset_0_1.5px_1px_0_rgba(255,255,255,0.85),inset_0_-1px_1px_0_rgba(0,0,0,0.06)]
+            dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7),inset_0_1.5px_1px_0_rgba(255,255,255,0.22),inset_0_-1px_1px_0_rgba(0,0,0,0.5)]"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -102,27 +103,28 @@ export default function DockNav() {
                 aria-label={`Navigate to ${item.label}`}
                 aria-current={isActive ? 'true' : undefined}
               >
-                {/* Tooltip - only visible when specifically hovered */}
+                {/* Glass Tooltip - only visible when specifically hovered */}
                 <span
                   className={`
-                    absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md
+                    absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg
                     text-[11px] font-medium whitespace-nowrap
-                    bg-chrome-900 dark:bg-chrome-100 text-white dark:text-chrome-900
-                    transition-all duration-150 pointer-events-none shadow-md
+                    bg-chrome-950/85 dark:bg-white/90 text-white dark:text-chrome-950
+                    backdrop-blur-xl border border-white/20 dark:border-black/10
+                    transition-all duration-150 pointer-events-none shadow-xl
                     ${hoveredItem === item.id ? 'opacity-100 -translate-y-1 scale-100' : 'opacity-0 translate-y-1 scale-95 pointer-events-none'}
                   `}
                 >
                   {item.label}
                 </span>
 
-                {/* Dock Icon Button */}
+                {/* Glass Dock Icon Button */}
                 <div
                   className={`
                     w-10 h-10 rounded-xl flex items-center justify-center
                     transition-all duration-200
                     ${isActive
-                      ? 'bg-gold/15 text-gold border border-gold/40 shadow-sm shadow-gold/20'
-                      : 'text-chrome-600 dark:text-chrome-300 hover:text-chrome-900 dark:hover:text-white hover:bg-chrome-100/60 dark:hover:bg-chrome-700/40'
+                      ? 'bg-gold/20 text-gold border border-gold/45 shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.4),0_2px_8px_rgba(201,168,76,0.25)] backdrop-blur-md'
+                      : 'text-chrome-700 dark:text-chrome-300 hover:text-chrome-950 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/10 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] backdrop-blur-sm'
                     }
                   `}
                 >
@@ -132,15 +134,15 @@ export default function DockNav() {
                 {/* Active indicator dot */}
                 <div
                   className={`w-1 h-1 rounded-full mt-1 transition-all duration-300 ${
-                    isActive ? 'bg-gold scale-100 opacity-100' : 'bg-transparent scale-0 opacity-0'
+                    isActive ? 'bg-gold scale-100 opacity-100 shadow-[0_0_6px_rgba(201,168,76,0.8)]' : 'bg-transparent scale-0 opacity-0'
                   }`}
                 />
               </button>
             );
           })}
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-chrome-200/60 dark:bg-chrome-700/40 self-center mx-1" />
+          {/* Glass Divider */}
+          <div className="w-px h-6 bg-gradient-to-b from-transparent via-chrome-300/60 dark:via-white/20 to-transparent self-center mx-1" />
 
           {/* Theme Toggle Button */}
           <button
@@ -158,16 +160,17 @@ export default function DockNav() {
           >
             <span
               className={`
-                absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-md
+                absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg
                 text-[11px] font-medium whitespace-nowrap
-                bg-chrome-900 dark:bg-chrome-100 text-white dark:text-chrome-900
-                transition-all duration-150 pointer-events-none shadow-md
+                bg-chrome-950/85 dark:bg-white/90 text-white dark:text-chrome-950
+                backdrop-blur-xl border border-white/20 dark:border-black/10
+                transition-all duration-150 pointer-events-none shadow-xl
                 ${hoveredItem === 'theme' ? 'opacity-100 -translate-y-1 scale-100' : 'opacity-0 translate-y-1 scale-95 pointer-events-none'}
               `}
             >
               {isDark ? 'Light Mode' : 'Dark Mode'}
             </span>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-chrome-600 dark:text-chrome-300 hover:text-gold dark:hover:text-gold hover:bg-gold/10 transition-colors duration-200">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-chrome-700 dark:text-chrome-300 hover:text-gold dark:hover:text-gold hover:bg-white/50 dark:hover:bg-white/10 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] transition-all duration-200">
               {isDark ? (
                 <Sun className="w-[18px] h-[18px]" strokeWidth={1.8} />
               ) : (
@@ -179,16 +182,16 @@ export default function DockNav() {
         </div>
       </nav>
 
-      {/* ──────────────── Mobile Persistent Floating Dock (5 Clean Icons) ──────────────── */}
+      {/* ──────────────── Mobile Persistent Glass Dock (5 Clean Icons) ──────────────── */}
       <nav
         className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 md:hidden w-[calc(100%-2rem)] max-w-sm"
         role="navigation"
         aria-label="Mobile navigation"
       >
-        {/* Expanded All-Sections Drawer Sheet */}
+        {/* Expanded All-Sections Glass Drawer Sheet */}
         {isMobileOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-black/55 backdrop-blur-md z-40 transition-opacity"
             onClick={() => setIsMobileOpen(false)}
           />
         )}
@@ -203,14 +206,14 @@ export default function DockNav() {
             }
           `}
         >
-          <div className="p-4 rounded-2xl bg-white/95 dark:bg-surface-dark-3/95 backdrop-blur-2xl border border-chrome-200/60 dark:border-chrome-700/50 shadow-2xl">
-            <div className="flex items-center justify-between px-2 pb-3 mb-2.5 border-b border-chrome-200/50 dark:border-chrome-700/40">
-              <span className="text-xs font-display font-bold tracking-wider uppercase text-chrome-600 dark:text-chrome-300">
+          <div className="p-4 rounded-3xl bg-white/85 dark:bg-[#121217]/85 backdrop-blur-3xl backdrop-saturate-[190%] border border-white/70 dark:border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3),inset_0_1.5px_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.8),inset_0_1.5px_1px_0_rgba(255,255,255,0.2)]">
+            <div className="flex items-center justify-between px-2 pb-3 mb-2.5 border-b border-chrome-200/50 dark:border-white/10">
+              <span className="text-xs font-display font-bold tracking-wider uppercase text-chrome-700 dark:text-chrome-300">
                 All Sections
               </span>
               <button
                 onClick={() => setIsMobileOpen(false)}
-                className="p-1 rounded-lg text-chrome-400 hover:text-chrome-700 dark:hover:text-chrome-200"
+                className="p-1 rounded-lg text-chrome-400 hover:text-chrome-700 dark:hover:text-chrome-200 hover:bg-white/40 dark:hover:bg-white/10 transition-colors"
                 aria-label="Close menu"
               >
                 <X className="w-4 h-4" />
@@ -227,11 +230,11 @@ export default function DockNav() {
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
                     className={`
-                      flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl
+                      flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl
                       transition-all duration-150 active:scale-95
                       ${isActive
-                        ? 'bg-gold/15 text-gold font-semibold shadow-xs border border-gold/30'
-                        : 'text-chrome-700 dark:text-chrome-300 hover:bg-chrome-100/60 dark:hover:bg-chrome-800/40'
+                        ? 'bg-gold/20 text-gold font-semibold shadow-xs border border-gold/40'
+                        : 'text-chrome-700 dark:text-chrome-300 hover:bg-white/50 dark:hover:bg-white/10'
                       }
                     `}
                   >
@@ -245,9 +248,10 @@ export default function DockNav() {
             {/* Theme Toggle in All Sections Drawer */}
             <button
               onClick={toggleTheme}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl
-                bg-chrome-100/70 dark:bg-surface-dark-4 text-chrome-700 dark:text-chrome-200
-                text-xs font-display font-medium hover:text-gold transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl
+                bg-white/60 dark:bg-white/10 text-chrome-800 dark:text-chrome-200
+                border border-white/60 dark:border-white/10
+                text-xs font-display font-medium hover:text-gold transition-colors shadow-xs"
             >
               {isDark ? (
                 <>
@@ -264,8 +268,13 @@ export default function DockNav() {
           </div>
         </div>
 
-        {/* Floating Quick Action Bar: Exactly 5 Icons */}
-        <div className="flex items-center justify-around px-2 py-1.5 rounded-2xl bg-white/90 dark:bg-surface-dark-3/90 backdrop-blur-2xl border border-chrome-200/60 dark:border-chrome-700/50 shadow-lg shadow-black/10 dark:shadow-black/50">
+        {/* Floating Quick Glass Action Bar: Exactly 5 Icons */}
+        <div className="flex items-center justify-around px-2 py-1.5 rounded-2xl
+          bg-white/50 dark:bg-[#121217]/55
+          backdrop-blur-2xl backdrop-saturate-[190%]
+          border border-white/70 dark:border-white/15
+          shadow-[0_15px_35px_-10px_rgba(0,0,0,0.15),inset_0_1.5px_1px_0_rgba(255,255,255,0.85),inset_0_-1px_1px_0_rgba(0,0,0,0.05)]
+          dark:shadow-[0_20px_45px_-10px_rgba(0,0,0,0.7),inset_0_1.5px_1px_0_rgba(255,255,255,0.2),inset_0_-1px_1px_0_rgba(0,0,0,0.4)]">
           {[
             { id: NAV_ITEMS[0].id, icon: NAV_ITEMS[0].icon, label: NAV_ITEMS[0].label }, // Home
             { id: NAV_ITEMS[2].id, icon: NAV_ITEMS[2].icon, label: NAV_ITEMS[2].label }, // Projects
@@ -281,8 +290,8 @@ export default function DockNav() {
                 className={`
                   flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-200
                   ${isActive
-                    ? 'text-gold bg-gold/10 font-semibold'
-                    : 'text-chrome-500 dark:text-chrome-400 active:text-chrome-900 dark:active:text-white'
+                    ? 'text-gold bg-gold/20 font-semibold border border-gold/35 shadow-xs'
+                    : 'text-chrome-600 dark:text-chrome-400 active:text-chrome-950 dark:active:text-white'
                   }
                 `}
                 aria-label={item.label}
@@ -299,8 +308,8 @@ export default function DockNav() {
             className={`
               flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-200
               ${isMobileOpen
-                ? 'text-gold bg-gold/15 font-semibold'
-                : 'text-chrome-500 dark:text-chrome-400 active:text-chrome-900 dark:active:text-white'
+                ? 'text-gold bg-gold/25 font-semibold border border-gold/40'
+                : 'text-chrome-600 dark:text-chrome-400 active:text-chrome-950 dark:active:text-white'
               }
             `}
             aria-label="All Sections"

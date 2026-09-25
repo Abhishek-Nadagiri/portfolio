@@ -22,8 +22,8 @@ export const linkedinPosts: LinkedInPost[] = [
     engagement: {
       reactions: 776,
       comments: 33,
-      contributions: '55k+ Impressions',
-      label: '776 Reactions · 33 Comments · 55k+ Impressions',
+      contributions: '79k+ Impressions',
+      label: '776 Reactions · 33 Comments · 79k+ Impressions',
     },
     url: 'https://lnkd.in/p/duu6B9KE',
     tags: ['Programming', 'GitHub', 'Cybersecurity', 'Developer Life'],
@@ -36,8 +36,8 @@ export const linkedinPosts: LinkedInPost[] = [
     engagement: {
       reactions: 303,
       comments: 15,
-      contributions: '22k+ Impressions',
-      label: '303 Reactions · 15 Comments · 22k+ Impressions',
+      contributions: '69k+ Impressions',
+      label: '303 Reactions · 15 Comments · 69k+ Impressions',
     },
     url: 'https://lnkd.in/p/d4YdxbMw',
     tags: ['AI', 'Technology', 'Internet Culture', 'Future Tech'],
