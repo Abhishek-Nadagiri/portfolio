@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply font-body bg-surface-light text-chrome-800 dark:bg-surface-dark dark:text-chrome-100 selection:bg-gold/25 selection:text-gold-light;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  ::selection {
+    background-color: rgba(201, 168, 76, 0.3);
+    color: #FFD700;
+  }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0B0B0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 174, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 168, 76, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(122, 122, 136, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 168, 76, 0.6);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(224, 224, 234, 0.6);
+}
+
+.dark .glass-panel {
+  background: rgba(17, 17, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Chrome Shimmer Gradient Utility */
+.chrome-gradient {
+  background: linear-gradient(135deg, #FAF9F6 0%, #E0E0EA 50%, #FAF9F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .chrome-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #A0A0AE 50%, #FFFFFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #E8D190 0%, #C9A84C 50%, #FFD700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
