@@ -103,7 +103,6 @@ export default function About() {
           {[
             { label: 'Focus Areas', value: '3', detail: 'Identities' },
             { label: 'Projects Built', value: '10+', detail: 'End-to-end' },
-            { label: 'Current CGPA', value: '8.88', detail: '/ 10.0' },
             { label: 'GitHub Repos', value: '13', detail: 'Public' },
           ].map((stat) => (
             <div
