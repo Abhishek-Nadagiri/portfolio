@@ -27,7 +27,7 @@ export const projects: Project[] = [
       'Full production deployment on Vercel',
     ],
     github: 'https://github.com/Abhishek-Nadagiri/ayucare',
-    liveDemo: 'https://medora-rosy.vercel.app',
+    liveDemo: 'https://ayucare-rosy.vercel.app',
     metrics: 'Active Healthcare Web App',
     featured: true,
   },
